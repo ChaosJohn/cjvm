@@ -1,0 +1,33 @@
+function error() {
+  tput sgr0
+  tput setaf 1
+  echo "ERR: $1"
+  tput sgr0
+  exit 1
+}
+
+GIT_PROVIDER=${GIT_PROVIDER:-github.com}
+GIT_URL="https://${GIT_PROVIDER}/ChaosJohn/cjvm.git"
+
+CJVM_HOME="${HOME}/.cjvm"
+[[ -d ${CJVM_HOME} ]] && error "cjvm already exists"
+mkdir -p ${CJVM_HOME}
+
+which git > /dev/null
+[[ ! $? -eq 0 ]] && error "git not found"
+git clone --quiet ${GIT_URL} ${CJVM_HOME} 
+if [[ ! $? -eq 0 ]]; then
+  rm -rf ${CJVM_HOME}
+  error "failed to clone ${GIT_URL}"
+fi
+
+SOURCE_FILE="${CJVM_HOME}/cjvm"
+SOURCE_LINE="[[ -s ${SOURCE_FILE} ]] && source ${SOURCE_FILE}"
+PROFILE="${HOME}/.bashrc"
+echo $SHELL | grep -qw "zsh" && PROFILE="${HOME}/.zshrc"
+grep -qF "${SOURCE_LINE}" ${PROFILE} || echo "${SOURCE_LINE}" >> ${PROFILE}
+
+echo "cjvm installed successfully"
+echo 
+echo "Please open a new terminal session or try in current session:"
+echo " \`source ${SOURCE_FILE}\`"

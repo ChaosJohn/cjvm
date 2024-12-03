@@ -1,0 +1,143 @@
+export CJVM_HOME="${HOME}/.cjvm"
+export CANGJIE_BUNDLES="${CJVM_HOME}/bundles"
+source "${CJVM_HOME}/common"
+
+function list() {
+  versions=$(curl -sL ${VERSIONS_URL})
+  # echo ${versions} | awk -F ',' 'BEGIN{OFS=" \t-> "}{print $1, $2}'
+  echo ${versions} | awk -F ',' '{print $1, $2}' | while read version name; do
+    RELEASE="${CANGJIE_BUNDLES}/cangjie-${version}"
+    installed=""
+    if [[ -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
+      installed="✔"
+    fi
+    echo "${version} \t-> ${name} ${installed}"
+  done
+}
+
+function __use_tip() {
+  version=$1
+  echo "cangjie ${version} installed, try it by:"
+  echo " \`cjvm use ${version}\`"
+}
+
+function install() {
+  version=$1
+  VERSION_URL="${BASE_URL}/versions/$version"
+
+  os_type=$(uname -s)
+  os_arch=$(uname -m)
+  
+  if [[ "${os_type}" == "Linux" ]]; then
+    os="linux"
+  elif [[ "${os_type}" == "Darwin" ]]; then
+    os="darwin"
+  else
+    error "unsupported os: ${os_type}"
+    return -1
+  fi
+  
+  if [[ "${os_arch}" == "x86_64" ]]; then
+    arch="x64"
+  elif [[ "${os_arch}" == "aarch64" || "${os_arch}" == "arm64" ]]; then
+    arch="aarch64"
+  else 
+    error "unsupported arch: ${os_arch}"
+    return -1
+  fi
+
+  tarball_arch="${os}_${arch}"
+
+  release=$(curl -sL "${VERSION_URL}")
+  if [[ ! $? -eq 0 ]]; then
+    error "failed to find version ${version}"
+    return -1
+  fi
+  
+  nsId=$(echo $release | grep -F "nsId") 
+  line=$(echo $release | grep -F "${tarball_arch}")
+  IFS="," read -r tarball objectKey sha256 size <<< "${line}"
+  URL="https://cangjie-lang.cn/v1/files/auth/downLoad?${nsId}&fileName=${tarball}&objectKey=${objectKey}"
+
+  mkdir -p "${CANGJIE_BUNDLES}"
+  RELEASE="${CANGJIE_BUNDLES}/cangjie-${version}"  
+  
+  if [[ -f "${CANGJIE_BUNDLES}/${tarball}" && -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
+    __use_tip "${version}"
+    return 0
+  fi
+  
+  curl -L "${URL}" -o "${CANGJIE_BUNDLES}/${tarball}" -C - 
+  if [[ ! $? -eq 0 ]]; then 
+    error "failed to download ${tarball}"
+    return -1
+  fi
+
+  which sha256sum
+  if [[ $? -eq 0 ]]; then
+    checksum=$(sha256sum "${CANGJIE_BUNDLES}/${tarball}" | awk '{print $1}')
+    if [[ ! $sha256 =~ ^$checksum$ ]]; then
+      rm -rf "${CANGJIE_BUNDLES}/${tarball}"
+      error "checksum dismatch, abort"
+      return -1
+    fi
+  fi
+  
+  echo "${tarball} downloaded, extracting..."
+  tar xzf "${CANGJIE_BUNDLES}/${tarball}" -C "${CANGJIE_BUNDLES}" 
+  if [[ ! $? -eq 0 ]]; then
+    error "${tarball} is corrupted"
+    return -1
+  fi
+  mv "${CANGJIE_BUNDLES}/cangjie" "${RELEASE}"
+
+  __use_tip "${version}"
+  return 0
+}
+
+function use() {
+  version=$1
+  RELEASE="${CANGJIE_BUNDLES}/cangjie-${version}"
+  if [[ -f "${CANGJIE_BUNDLES}/${tarball}" && -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
+    source "${RELEASE}/envsetup.sh"
+    echo "cangjie ${version} activated. "
+    return 0
+  fi
+  error "cangjie ${version} not installed"
+  return -1
+}
+
+function usage() {
+  echo "Usage: cjvm [command]
+
+Description: 
+  A Version Manager for Cangjie Language
+
+Commands:
+  list    - list all remote versions (prints "✔" if installed)
+  install - install specified version, e.g., \`cjvm install 0.53.13\`
+  use     - activate specified version, e.g., \`cjvm use 0.53.13\`
+"
+}
+
+function cjvm() {
+  if [[ "$1" == "list" ]]; then
+    list
+    return $?
+  fi
+
+  if [[ "$1" == "install" ]]; then
+    shift
+    install "$@"
+    return $?
+  fi
+
+  if [[ "$1" == "use" ]]; then
+    shift
+    use "$@"
+    return $?
+  fi
+
+  usage
+  return 0
+}
