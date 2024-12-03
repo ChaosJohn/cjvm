@@ -1,5 +1,6 @@
 # cjvm
 A Version Manager for Cangjie Language. [Cangjie](https://cangjie-lang.cn)
+
 Inspired by:
 - Node Version Manager [nvm-sh/nvm](https://github.com/nvm-sh/nvm)
 - Go Version Manager [moovweb/gvm](https://github.com/moovweb/gvm)
