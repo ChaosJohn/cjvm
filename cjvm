@@ -73,15 +73,15 @@ function install() {
     return -1
   fi
 
-  which sha256sum
-  if [[ $? -eq 0 ]]; then
-    checksum=$(sha256sum "${CANGJIE_BUNDLES}/${tarball}" | awk '{print $1}')
-    if [[ ! $sha256 =~ ^$checksum$ ]]; then
-      rm -rf "${CANGJIE_BUNDLES}/${tarball}"
-      error "checksum dismatch, abort"
-      return -1
-    fi
-  fi
+  # which sha256sum
+  # if [[ $? -eq 0 ]]; then
+  #   checksum=$(sha256sum "${CANGJIE_BUNDLES}/${tarball}" | awk '{print $1}')
+  #   if [[ ! $sha256 =~ ^$checksum$ ]]; then
+  #     rm -rf "${CANGJIE_BUNDLES}/${tarball}"
+  #     error "checksum dismatch, abort"
+  #     return -1
+  #   fi
+  # fi
   
   echo "${tarball} downloaded, extracting..."
   tar xzf "${CANGJIE_BUNDLES}/${tarball}" -C "${CANGJIE_BUNDLES}" 
