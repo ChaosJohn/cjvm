@@ -25,7 +25,7 @@ SOURCE_FILE="${CJVM_HOME}/cjvm"
 SOURCE_LINE="[[ -s ${SOURCE_FILE} ]] && source ${SOURCE_FILE}"
 PROFILE="${HOME}/.bashrc"
 echo $SHELL | grep -qw "zsh" && PROFILE="${HOME}/.zshrc"
-grep -qF "${SOURCE_LINE}" ${PROFILE} || echo "${SOURCE_LINE}" >> ${PROFILE}
+grep -qF "^${SOURCE_LINE}" ${PROFILE} || echo "${SOURCE_LINE}" >> ${PROFILE}
 
 echo "cjvm installed successfully"
 echo 
