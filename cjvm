@@ -31,7 +31,7 @@ function install() {
   if [[ "${os_type}" == "Linux" ]]; then
     os="linux"
   elif [[ "${os_type}" == "Darwin" ]]; then
-    os="darwin"
+    os="darwin|mac"
   else
     error "unsupported os: ${os_type}"
     return -1
@@ -46,8 +46,6 @@ function install() {
     return -1
   fi
 
-  tarball_arch="${os}_${arch}"
-
   release=$(curl -sL "${VERSION_URL}")
   if [[ ! $? -eq 0 ]]; then
     error "failed to find version ${version}"
@@ -55,7 +53,11 @@ function install() {
   fi
   
   nsId=$(echo $release | grep -F "nsId") 
-  line=$(echo $release | grep -F "${tarball_arch}")
+  line=$(echo $release | grep -E "${os}" | grep -F "${arch}")
+  if [[ -z "${line}" ]]; then
+    error "no release found for ${os_type} ${os_arch} in version ${version}"
+    return -1
+  fi
   IFS="," read -r tarball objectKey sha256 size <<< "${line}"
   URL="https://cangjie-lang.cn/v1/files/auth/downLoad?${nsId}&fileName=${tarball}&objectKey=${objectKey}"
 
