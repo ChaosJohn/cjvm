@@ -1,3 +1,4 @@
 0.53.13,Cangjie 0.53.13 Beta
 0.53.18,Cangjie 0.53.18 Beta
 1.0.0,Cangjie 1.0.0 LTS
+1.0.1,Cangjie 1.0.1 LTS
