@@ -100,7 +100,7 @@ function install() {
 function use() {
   version=$1
   RELEASE="${CANGJIE_BUNDLES}/cangjie-${version}"
-  if [[ -f "${CANGJIE_BUNDLES}/${tarball}" && -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
+  if [[ -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
     source "${RELEASE}/envsetup.sh"
     echo "cangjie ${version} activated. "
     return 0
