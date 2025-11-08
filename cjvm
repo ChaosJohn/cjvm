@@ -71,7 +71,8 @@ function install() {
   
   curl -L "${URL}" -o "${CANGJIE_BUNDLES}/${tarball}" -C - 
   if [[ ! $? -eq 0 ]]; then 
-    error "failed to download ${tarball}"
+    error "failed to download ${tarball}. cleaning up..."
+    rm -rf "${CANGJIE_BUNDLES}/${tarball}"
     return -1
   fi
 
