@@ -11,7 +11,7 @@ function list() {
     if [[ -d "${RELEASE}" && -f "${RELEASE}/envsetup.sh" ]]; then
       installed="✔"
     fi
-    echo "${version} \t-> ${name} ${installed}"
+    printf "%-10s -> %s %s\n" "${version}" "${name}" "${installed}"
   done
 }
 
